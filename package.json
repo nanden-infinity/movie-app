@@ -1,0 +1,23 @@
+{
+  "name": "movie-app",
+  "version": "1.0.0",
+  "description": "movie-app-with-vanila-js",
+  "homepage": "https://github.com/nanden-infinity/movie-app#readme",
+  "bugs": {
+    "url": "https://github.com/nanden-infinity/movie-app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanden-infinity/movie-app.git"
+  },
+  "license": "ISC",
+  "author": "nanden-infinity",
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
