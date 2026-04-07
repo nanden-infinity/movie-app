@@ -1,2 +1,2 @@
 # movie-app
-vanila js
+vanila js pure
