@@ -341,3 +341,17 @@ section h2 {
 .alert-error {
   background: red;
 }
+
+/* Overlay Cover Background Image */
+.overlay-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  z-index: -1;
+  opacity: 0.1;
+}
