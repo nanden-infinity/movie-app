@@ -18,12 +18,12 @@ async function DisplayPopularMovie() {
             ? ` <img
               src="https://image.tmdb.org/t/p/w500${poster_path}"
               class="card-img-top"
-              alt="Movie Title"
+               alt="${movie.title}"
             />`
             : `<img
               src="images/no-image.jpg"
               class="card-img-top"
-              alt="Movie Title"
+              alt="${movie.title}"
             />`
         } 
         </a>
@@ -75,21 +75,17 @@ async function DisplayPopularShows() {
 }
 
 // DisplayMovieDetails
-
 async function displayMovieDetails() {
   const movieId = window.location.search.split('=')[1];
-  const movie = await fecthAPIData(`/show/${movieId}`);
+  const movie = await fecthAPIData(`/movie/${movieId}`);
   console.log(movie, movieId);
   // overlay for backdrop Images
   displayBackdropImage('movie', movie.backdrop_path);
   // const movie = await fecthAPIData(`movie/${movieId}`);
   if (!movie) return;
 
-  // if (!movieId) return;
-
+  //  crreate a div
   const div = document.createElement('div');
-
-  // div.classList.add('details-top');
   div.innerHTML = `
   <div class="details-top">
         <div>
@@ -140,11 +136,11 @@ async function displayMovieDetails() {
 
   document.getElementById('movie-details').appendChild(div);
 }
+
 // Display show deatils
 async function displayShowDetails() {
   const showId = window.location.search.split('=')[1];
   const show = await fecthAPIData(`/tv/${showId}`);
-
   // overlay for backdrop Images
   displayBackdropImage('show', show.backdrop_path);
   // const show = await fecthAPIData(`show/${showId}`);
@@ -214,6 +210,53 @@ function displayBackdropImage(type, backgroundPath) {
     document.getElementById('show-details').appendChild(overlayDiv);
   }
 }
+
+// Fetch
+async function displaySlider() {
+  const { results } = await fecthAPIData('/movie/now_playing');
+  console.log(results);
+  results.forEach(movie => {
+    const div = document.createElement('div');
+    div.classList.add('swiper-slide');
+    div.innerHTML = `
+          <a href="movie-details.html?id=${movie.id}">
+            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" "alt="${movie.title}" />
+          </a>
+          <h4 class="swiper-rating">
+            <i class="fas fa-star text-secondary"></i> ${movie.vote_average.toFixed(2)}/ 10
+          </h4>
+         `;
+    document.querySelector('.swiper-wrapper').appendChild(div);
+    initSwiper();
+  });
+}
+
+// InitSlider
+
+function initSwiper() {
+  const swiper = new Swiper('.swiper', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    freeMode: true,
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    breakpoints: {
+      500: {
+        slidesPerView: 2,
+      },
+      700: {
+        slidesPerView: 3,
+      },
+      1200: {
+        slidesPerView: 4,
+      }
+    },
+  });
+}
+
 // Fetch Date From TMBD  API
 async function fecthAPIData(endpoint) {
   showSpinner();
@@ -257,6 +300,7 @@ function init() {
   switch (global.currentPage) {
     case '/':
     case '/index.html':
+      displaySlider();
       DisplayPopularMovie();
       break;
 
