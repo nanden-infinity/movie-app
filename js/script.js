@@ -1,6 +1,16 @@
 // const { currentPage } = global;
 const global = {
   currentPage: window.location.pathname,
+  search: {
+    term: '',
+    type: '',
+    pages: 1,
+    totalPages: 1,
+  },
+  api: {
+    apiKey: 'bf723475dd9a86edff7d43c561712377',
+    apiUrl: 'https://api.themoviedb.org/3',
+  },
 };
 
 // Display 20 must Popular Movie;
@@ -42,7 +52,7 @@ async function DisplayPopularMovie() {
 async function DisplayPopularShows() {
   document.getElementById('popular-shows').innerHTML = '';
   const { results } = await fecthAPIData('/tv/popular');
-
+  console.log(results);
   results.forEach(show => {
     const { id, poster_path } = show;
     const div = document.createElement('div');
@@ -66,7 +76,7 @@ async function DisplayPopularShows() {
         <div class="card-body">
          <h5 class="card-title">${show.name}</h5>
          <p class="card-text">
-           <small class="text-muted">Release: ${show.first_air_data}</small>
+           <small class="text-muted">Release: ${show.first_air_date}</small>
            </p>
          </div>
           `;
@@ -76,9 +86,9 @@ async function DisplayPopularShows() {
 
 // DisplayMovieDetails
 async function displayMovieDetails() {
-  const movieId = window.location.search.split('=')[1];
+  const movieId = window.location.search.split('=').at(1);
   const movie = await fecthAPIData(`/movie/${movieId}`);
-  console.log(movie, movieId);
+
   // overlay for backdrop Images
   displayBackdropImage('movie', movie.backdrop_path);
   // const movie = await fecthAPIData(`movie/${movieId}`);
@@ -214,7 +224,6 @@ function displayBackdropImage(type, backgroundPath) {
 // Fetch
 async function displaySlider() {
   const { results } = await fecthAPIData('/movie/now_playing');
-  console.log(results);
   results.forEach(movie => {
     const div = document.createElement('div');
     div.classList.add('swiper-slide');
@@ -231,8 +240,23 @@ async function displaySlider() {
   });
 }
 
-// InitSlider
+// DEPEND
+async function searchResult() {
+  // const { results } = await fecthAPIData('/search/movie');
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  // const { results } = await fecthAPIData(`/search/${URLParams}`);
+  global.search.type = urlParams.get('type');
+  global.search.term = urlParams.get('search-term');
+  if (global.search.term !== '' && global.search.term !== null) {
+    const { results } = await searchAPIData();
+    console.log(results);
+  } else {
+    showError('Please enter your search term', 'alert');
+  }
+}
 
+// InitSlider Swiper
 function initSwiper() {
   const swiper = new Swiper('.swiper', {
     slidesPerView: 1,
@@ -252,7 +276,7 @@ function initSwiper() {
       },
       1200: {
         slidesPerView: 4,
-      }
+      },
     },
   });
 }
@@ -260,14 +284,27 @@ function initSwiper() {
 // Fetch Date From TMBD  API
 async function fecthAPIData(endpoint) {
   showSpinner();
-  const API_KEY = 'bf723475dd9a86edff7d43c561712377';
-  const API_URL = 'https://api.themoviedb.org/3';
+  const { apiKey, apiUrl } = global.api;
   // prettier-ignore
   const response = await fetch(
-    `${API_URL}${endpoint}?api_key=${API_KEY}&language=en-GB`
+    `${apiUrl}${endpoint}?api_key=${apiKey}&language=en-GB`
   );
   hideSpinner();
   const data = await response.json();
+  return data;
+}
+
+// Make Search term
+async function searchAPIData() {
+  showSpinner();
+  const { apiKey, apiUrl } = global.api;
+  const { type, term } = global.search;
+  // prettier-ignore
+  const response = await fetch(`${apiUrl}/search/${type}?api_key=${apiKey}&language=en-GB&query=${term}`);
+
+  hideSpinner();
+  const data = await response.json();
+  console.log(data);
   return data;
 }
 
@@ -290,6 +327,17 @@ function higthlightActiveLink() {
     }
   });
 }
+
+// show Error
+function showError(message, className) {
+  const elementError = document.createElement('div');
+  elementError.classList.add('alert', className);
+  elementError.appendChild(document.createTextNode(message));
+  console.log(elementError);
+  document.getElementById('alert').appendChild(elementError);
+  setTimeout(() => elementError.remove(), 3000);
+}
+
 // Add pontos
 function addCommasToNumber(number) {
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -316,7 +364,7 @@ function init() {
 
       break;
     case '/search.html':
-      console.log('Search');
+      searchResult();
       break;
   }
   higthlightActiveLink();
