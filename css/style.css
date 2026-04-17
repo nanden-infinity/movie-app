@@ -10,6 +10,7 @@
   --color-primary: #020d18;
   --color-secondary: #f1c40f;
 }
+/* All imgs */
 
 body {
   font-family: 'Poppins', sans-serif;
@@ -124,9 +125,12 @@ ul {
 .card {
   background: #04376b;
   padding: 5px;
+  /* max-width: 500px;
+  margin: 0 auto; */
 }
 
 .card img {
+  max-width: 100%;
   width: 100%;
 }
 
@@ -221,6 +225,18 @@ section h2 {
   justify-content: space-between;
   align-items: center;
   margin: 50px 0 30px;
+  @media (max-width: 768px) {
+    & {
+      justify-content: center;
+      flex-direction: column;
+    }
+    & div img {
+      margin: 0 auto;
+    }
+    & div + div {
+      padding-inline: 4rem;
+    }
+  }
 }
 
 .details-top img {

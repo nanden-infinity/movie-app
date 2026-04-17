@@ -52,7 +52,6 @@ async function DisplayPopularMovie() {
 async function DisplayPopularShows() {
   document.getElementById('popular-shows').innerHTML = '';
   const { results } = await fecthAPIData('/tv/popular');
-  console.log(results);
   results.forEach(show => {
     const { id, poster_path } = show;
     const div = document.createElement('div');
@@ -127,7 +126,7 @@ async function displayMovieDetails() {
           <ul class="list-group">
           ${movie.genres.map(({ name }) => `<li>${name}</li>`).join('')}
           </ul>
-          ${movie.homepage ? `<a href="${movie.homepage}" target="_blank" class="btn">Visit Movie Homepage</a>` : `<a disabled="true" href="#" class="btn">Visit Movie Homepage</a>`}
+          ${movie.homepage ? `<a href="${movie.homepage}" target="_blank" class="btn">Visit Movie Homepage</a>` : `<a disabled="true" href="#" class="btn">Visit Movie Homepage</a>`}z
          
         </div>
       </div>
@@ -229,7 +228,19 @@ async function displaySlider() {
     div.classList.add('swiper-slide');
     div.innerHTML = `
           <a href="movie-details.html?id=${movie.id}">
-            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" "alt="${movie.title}" />
+            ${
+              movie.poster_path
+                ? ` <img
+              src="https://image.tmdb.org/t/p/w500${movie.poster_path}"
+              class="card-img-top"
+              alt="${movie.title}"
+            />`
+                : `<img
+              src="images/no-image.jpg"
+              class="card-img-top"
+              alt="${movie.name}"
+            />`
+            } 
           </a>
           <h4 class="swiper-rating">
             <i class="fas fa-star text-secondary"></i> ${movie.vote_average.toFixed(2)}/ 10
@@ -249,11 +260,58 @@ async function searchResult() {
   global.search.type = urlParams.get('type');
   global.search.term = urlParams.get('search-term');
   if (global.search.term !== '' && global.search.term !== null) {
-    const { results } = await searchAPIData();
-    console.log(results);
+    const { results, total_pages, page } = await searchAPIData();
+
+    if (results.length === 0) {
+      return showAlert('No Results found');
+    }
+
+    displaySearchResults(results);
+    // Limpando o campo de input
+    document.getElementById('search-term').value = '';
   } else {
-    showError('Please enter your search term', 'alert');
+    showAlert('Please enter your search term', 'alert');
   }
+}
+
+// Display Results and append to the DOM
+
+function displaySearchResults(results) {
+  results.forEach(result => {
+    console.log(result, 'estou aqui !!!');
+    const card = document.createElement('div');
+    const title = global.search.type === 'movie' ? result.title : result.name;
+    const release =
+      global.search.type === 'movie'
+        ? result.release_date
+        : result.first_air_date;
+    console.log(title);
+    card.classList.add('card');
+    card.innerHTML = `
+        <a href="${global.search.type}-details.html?id=${result.id}">
+             ${
+               result.poster_path
+                 ? ` <img
+              src="https://image.tmdb.org/t/p/w500/${result.poster_path}"
+              class="card-img-top"
+              alt="${title}"
+            />`
+                 : `<img
+              src="images/no-image.jpg"
+              class="card-img-top"
+              alt="${title}"
+            />`
+             } 
+        </a>
+        <div class="card-body">
+          <h5 class="card-title">${title}</h5>
+          <p class="card-text">
+            <small class="text-muted">Release: ${release}</small>
+          </p>
+        </div>
+      `;
+    document.getElementById('search-results').appendChild(card);
+  });
 }
 
 // InitSlider Swiper
@@ -304,7 +362,7 @@ async function searchAPIData() {
 
   hideSpinner();
   const data = await response.json();
-  console.log(data);
+  // console.log(data);
   return data;
 }
 
@@ -328,15 +386,46 @@ function higthlightActiveLink() {
   });
 }
 
+// INIC     COMP FIM
 // show Error
-function showError(message, className) {
+
+function showAlert(message, className = 'alert') {
   const elementError = document.createElement('div');
-  elementError.classList.add('alert', className);
+  elementError.classList.add(className);
   elementError.appendChild(document.createTextNode(message));
-  console.log(elementError);
+  // console.log(elementError);
   document.getElementById('alert').appendChild(elementError);
   setTimeout(() => elementError.remove(), 3000);
 }
+const desativado = () => {
+  // Mostrando o resutado
+  const showError = async erro => await displayErro(erro);
+
+  function displayErro(textErr) {
+    const spanElement = document.createElement('span');
+    spanElement.innerHTML = `
+      <span>${textErr}</span>
+      `;
+    const html = textErr ? textErr : '';
+  }
+
+  // Show the Search Results
+  //  DEBUG
+
+  async function showTheResults(endpoint) {
+    const { results } = await (await fetch(endpoint)).json();
+
+    if (results.length === 0) return;
+
+    Array.from(results).forEach(data => {
+      const container = document.createElement('div');
+      container.classList.add('container--card');
+      container.innerHTML = `
+        
+        `;
+    });
+  }
+};
 
 // Add pontos
 function addCommasToNumber(number) {
@@ -354,14 +443,15 @@ function init() {
 
     case '/shows.html':
       DisplayPopularShows();
+      console.log('show popular movie');
       break;
     case '/movie-details.html':
       displayMovieDetails();
-
+      console.log('show de movie');
       break;
     case '/tv-details.html':
       displayShowDetails();
-
+      console.log('Tv show');
       break;
     case '/search.html':
       searchResult();
