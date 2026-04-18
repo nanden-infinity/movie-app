@@ -357,7 +357,10 @@ section h2 {
 .alert-error {
   background: red;
 }
-
+#earch-results-heading h2 {
+  text-transform: capitalize;
+  color: #f1c40f;
+}
 /* Overlay Cover Background Image */
 .overlay-back {
   position: absolute;
