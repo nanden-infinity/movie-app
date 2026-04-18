@@ -4,8 +4,9 @@ const global = {
   search: {
     term: '',
     type: '',
-    pages: 1,
+    page: 1,
     totalPages: 1,
+    totalResults: 0,
   },
   api: {
     apiKey: 'bf723475dd9a86edff7d43c561712377',
@@ -260,8 +261,10 @@ async function searchResult() {
   global.search.type = urlParams.get('type');
   global.search.term = urlParams.get('search-term');
   if (global.search.term !== '' && global.search.term !== null) {
-    const { results, total_pages, page } = await searchAPIData();
-
+    const { results, total_pages, page, total_results } = await searchAPIData();
+    global.search.page = page;
+    global.search.totalPages = total_pages;
+    global.search.totalResults = total_results;
     if (results.length === 0) {
       return showAlert('No Results found');
     }
@@ -277,15 +280,15 @@ async function searchResult() {
 // Display Results and append to the DOM
 
 function displaySearchResults(results) {
+  document.getElementById('search-results').innerHTML = '';
+  document.getElementById('search-results-heading').innerHTML = '';
+  document.getElementById('pagination').innerHTML = '';
   results.forEach(result => {
-    console.log(result, 'estou aqui !!!');
     const card = document.createElement('div');
+    // prettier-ignore
     const title = global.search.type === 'movie' ? result.title : result.name;
-    const release =
-      global.search.type === 'movie'
-        ? result.release_date
-        : result.first_air_date;
-    console.log(title);
+    // prettier-ignore
+    const release = global.search.type === 'movie'? result.release_date: result.first_air_date;
     card.classList.add('card');
     card.innerHTML = `
         <a href="${global.search.type}-details.html?id=${result.id}">
@@ -310,10 +313,50 @@ function displaySearchResults(results) {
           </p>
         </div>
       `;
+
+    document.querySelector('#search-results-heading').innerHTML = `
+      <h2>${results.length} of ${global.search.totalResults} Results for ${global.search.term}</h2>`;
     document.getElementById('search-results').appendChild(card);
   });
-}
 
+  displayPagination();
+}
+// Display Pagination
+function displayPagination() {
+  const pagination = document.createElement('div');
+  pagination.classList.add('pagination');
+  pagination.innerHTML = `
+   <button class="btn btn-primary" id="prev">Prev</button>
+        <button class="btn btn-primary" id="next">Next</button>
+        <div class="page-counter">${global.search.page}  of ${global.search.totalPages}</div>
+  `;
+  document.getElementById('pagination').appendChild(pagination);
+
+  // disable prev button if on first page
+  // prettier-ignore
+  const btnPrev = document.querySelector('#prev');
+  const btnNext = document.querySelector('#next');
+  if (global.search.page === 1) btnPrev.disabled = true;
+  if (global.search.page === global.search.totalPages) btnNext.disabled = true;
+
+  // next page
+  btnNext.addEventListener('click', nextPage);
+  async function nextPage() {
+    global.search.page++;
+    const { results, total_pages } = await searchAPIData();
+    displaySearchResults(results);
+  }
+  // next page
+  btnPrev.addEventListener('click', prevPage);
+  async function prevPage() {
+    global.search.page--;
+    const { results, total_pages } = await searchAPIData();
+    // document.querySelector('.page-counter').innerHTML = `
+    //    ${global.search.page} of ${(global.search.totalPages = total_pages)};
+    //  `;
+    displaySearchResults(results);
+  }
+}
 // InitSlider Swiper
 function initSwiper() {
   const swiper = new Swiper('.swiper', {
@@ -358,7 +401,7 @@ async function searchAPIData() {
   const { apiKey, apiUrl } = global.api;
   const { type, term } = global.search;
   // prettier-ignore
-  const response = await fetch(`${apiUrl}/search/${type}?api_key=${apiKey}&language=en-GB&query=${term}`);
+  const response = await fetch(`${apiUrl}/search/${type}?api_key=${apiKey}&language=en-GB&query=${term}&page=${global.search.page}`);
 
   hideSpinner();
   const data = await response.json();
